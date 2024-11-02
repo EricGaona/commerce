@@ -1,14 +1,18 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-
-from .models import User
-
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from .models import User, Listing, Bid, Comment, Category, Watchlist
+from .forms import ListingForm, BidForm, CommentForm
 
 def index(request):
-    return render(request, "auctions/index.html")
+    listings = Listing.objects.filter(active=True)
+    return render(request, "auctions/index.html", {
+        "listings": listings
+    })
 
 
 def login_view(request):
@@ -29,12 +33,12 @@ def login_view(request):
             })
     else:
         return render(request, "auctions/login.html")
-
+    
 
 def logout_view(request):
     logout(request)
     return HttpResponseRedirect(reverse("index"))
-
+ 
 
 def register(request):
     if request.method == "POST":
@@ -61,3 +65,80 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "auctions/register.html")
+  
+
+
+# - - - --  -
+
+@login_required
+def create_listing(request):
+    if request.method == "POST":
+        form = ListingForm(request.POST)
+        if form.is_valid():
+            listing = form.save(commit=False)
+            listing.created_by = request.user
+            listing.save()
+            return redirect("index")
+    else:
+        form = ListingForm()
+    return render(request, "auctions/create_listing.html", {"form": form})
+
+# Listing Page view
+def listing_page(request, listing_id):
+    listing = get_object_or_404(Listing, pk=listing_id)
+    bids = listing.bids.all().order_by("-amount")  # Assuming reverse chronological order
+    comments = listing.comments.all().order_by("-timestamp")
+    user_watchlist = Watchlist.objects.filter(user=request.user, listing=listing) if request.user.is_authenticated else None
+
+    if request.method == "POST":
+        # Handle Bid
+        if "place_bid" in request.POST:
+            bid_form = BidForm(request.POST)
+            if bid_form.is_valid():
+                bid = bid_form.save(commit=False)
+                bid.listing = listing
+                bid.user = request.user
+                if bid.amount >= listing.starting_bid and (not bids or bid.amount > bids[0].amount):
+                    bid.save()
+                    listing.current_price = bid.amount
+                    listing.save()
+                    messages.success(request, "Bid placed successfully!")
+                else:
+                    messages.error(request, "Bid must be higher than current bid and starting bid.")
+        # Handle Comment
+        elif "add_comment" in request.POST:
+            comment_form = CommentForm(request.POST)
+            if comment_form.is_valid():
+                comment = comment_form.save(commit=False)
+                comment.listing = listing
+                comment.user = request.user
+                comment.save()
+                messages.success(request, "Comment added successfully!")
+
+    bid_form = BidForm()
+    comment_form = CommentForm()
+    return render(request, "auctions/listing.html", {
+        "listing": listing,
+        "bids": bids,
+        "comments": comments,
+        "bid_form": bid_form,
+        "comment_form": comment_form,
+        "in_watchlist": user_watchlist.exists() if user_watchlist else False,
+    })
+
+# Watchlist view
+@login_required
+def watchlist(request):
+    watchlist_items = Watchlist.objects.filter(user=request.user)
+    return render(request, "auctions/watchlist.html", {"watchlist": watchlist_items})
+
+# Categories view
+def categories(request):
+    categories = Category.objects.all()
+    return render(request, "auctions/categories.html", {"categories": categories})
+
+# Category Listings view
+def category_listings(request, category_name):
+    category = get_object_or_404(Category, name=category_name)
+    listings = Listing.objects.filter(category=category, active=True)
+    return render(request, "auctions/category_listings.html", {"category": category, "listings": listings})
