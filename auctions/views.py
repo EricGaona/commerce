@@ -10,8 +10,10 @@ from .forms import ListingForm, BidForm, CommentForm
 
 def index(request):
     listings = Listing.objects.filter(active=True)
+    categories = Category.objects.all()
     return render(request, "auctions/index.html", {
-        "listings": listings
+        "listings": listings,
+        "categories": categories
     })
 
 
@@ -135,6 +137,10 @@ def watchlist(request):
 # Categories view
 def categories(request):
     categories = Category.objects.all()
+    
+#     categories = Listing.objects.values('category').distinct()
+ 
+#    return render(request, "auctions/index.html", {"categories": categories})
     return render(request, "auctions/categories.html", {"categories": categories})
 
 # Category Listings view
@@ -142,3 +148,15 @@ def category_listings(request, category_name):
     category = get_object_or_404(Category, name=category_name)
     listings = Listing.objects.filter(category=category, active=True)
     return render(request, "auctions/category_listings.html", {"category": category, "listings": listings})
+
+def add_watchlist(request, listing_id):
+    if request.user.is_authenticated:
+        # Retrieve the listing using listing_id
+        listing = Listing.objects.get(id=listing_id)
+        
+        # Add the listing to the user's watchlist
+        request.user.watchlist.add(listing)
+        
+    return redirect('listing_page', listing_id=listing_id)  # Redirect back to the listing page
+
+
