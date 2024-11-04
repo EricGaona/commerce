@@ -37,13 +37,11 @@
         <!-- Category selection for the listing -->
         <div class="form-group">
             <label for="category">Category</label>
-            <select class="form-control" id="category" name="category">
-                <option value="">Select a category (optional)</option>
-                <option value="Fashion">Fashion</option>
-                <option value="Toys">Toys</option>
-                <option value="Electronics">Electronics</option>
-                <option value="Home">Home</option>
-                <option value="Other">Other</option>
+            <select class="form-control" id="category" name="category" required>
+                <option value="">Select a category</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}">{{ category.name }}</option>
+                {% endfor %}
             </select>
         </div>
 

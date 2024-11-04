@@ -17,6 +17,7 @@ class Listing(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()
     starting_bid = models.DecimalField(max_digits=10, decimal_places=2)
+    current_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     image_url = models.URLField(blank=True, null=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="listings")
@@ -50,6 +51,9 @@ class Comment(models.Model):
 class Watchlist(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="watchlist")
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="watched_by")
+
+    class Meta:
+        unique_together = ('user', 'listing')  # Prevents duplicate watchlist entries for the same user and listing
 
     def __str__(self):
         return f"{self.user.username} is watching {self.listing.title}"

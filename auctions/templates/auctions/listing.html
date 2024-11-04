@@ -7,7 +7,8 @@
 <div class="container">
     <h2>{{ listing.title }}</h2>
     <img src="{{ listing.image_url|default_if_none:'#' }}" class="img-fluid mb-3" alt="Image for {{ listing.title }}" />
-    <p>{{ listing.description }}</p>
+    <p>Description: {{ listing.description }}</p>
+    <p>Owner: {{ listing.created_by }}</p>
     <p><strong>Starting Bid: ${{ listing.starting_bid }}</strong></p>
   
     {% if user.is_authenticated %}

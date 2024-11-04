@@ -74,6 +74,8 @@ def register(request):
 
 @login_required
 def create_listing(request):
+    categories = Category.objects.all()
+
     if request.method == "POST":
         form = ListingForm(request.POST)
         if form.is_valid():
@@ -83,7 +85,10 @@ def create_listing(request):
             return redirect("index")
     else:
         form = ListingForm()
-    return render(request, "auctions/create_listing.html", {"form": form})
+    return render(request, "auctions/create_listing.html", {
+        "form": form,
+        "categories": categories
+        })
 
 # Listing Page view
 def listing_page(request, listing_id):
@@ -150,13 +155,23 @@ def category_listings(request, category_name):
     return render(request, "auctions/category_listings.html", {"category": category, "listings": listings})
 
 def add_watchlist(request, listing_id):
-    if request.user.is_authenticated:
-        # Retrieve the listing using listing_id
-        listing = Listing.objects.get(id=listing_id)
-        
-        # Add the listing to the user's watchlist
-        request.user.watchlist.add(listing)
-        
-    return redirect('listing_page', listing_id=listing_id)  # Redirect back to the listing page
+    listing = get_object_or_404(Listing, pk=listing_id)
+    user = request.user
 
+    # Check if the listing is already in the user's watchlist
+    in_watchlist = Watchlist.objects.filter(user=user, listing=listing).exists()
 
+    if request.method == "POST":
+        if in_watchlist:
+            # If it's already in the watchlist, remove it
+            Watchlist.objects.filter(user=user, listing=listing).delete()
+        else:
+            # If it's not in the watchlist, add it
+            Watchlist.objects.create(user=user, listing=listing)
+        return redirect('listing_page', listing_id=listing.id)
+
+    # Render the add_watchlist template with the listing and in_watchlist status
+    return render(request, "auctions/add_watchlist.html", {
+        "listing": listing,
+        "in_watchlist": in_watchlist
+    })
