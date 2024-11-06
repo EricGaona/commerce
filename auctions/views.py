@@ -13,8 +13,17 @@ def index(request):
     categories = Category.objects.all()
     return render(request, "auctions/index.html", {
         "listings": listings,
-        "categories": categories
+        "categories": categories        
     })
+
+def datos_globales(request):
+    count = 0
+    if request.user.is_authenticated:
+        watchlist_items = Watchlist.objects.filter(user=request.user)
+        count = watchlist_items.count()
+    return {
+        'count_watch_list': count
+    }
 
 
 def login_view(request):
@@ -168,6 +177,26 @@ def add_watchlist(request, listing_id):
         else:
             # If it's not in the watchlist, add it
             Watchlist.objects.create(user=user, listing=listing)
+        return redirect('listing_page', listing_id=listing.id)
+
+    # Render the add_watchlist template with the listing and in_watchlist status
+    return render(request, "auctions/add_watchlist.html", {
+        "listing": listing,
+        "in_watchlist": in_watchlist
+    })
+
+def remove_watchlist(request, listing_id):
+    listing = get_object_or_404(Listing, pk=listing_id)
+    user = request.user
+
+    # Check if the listing is already in the user's watchlist
+    in_watchlist = Watchlist.objects.filter(user=user, listing=listing).exists()
+
+    if request.method == "POST":
+        if in_watchlist:
+            # If it's already in the watchlist, remove it
+            Watchlist.objects.filter(user=user, listing=listing).delete()
+       
         return redirect('listing_page', listing_id=listing.id)
 
     # Render the add_watchlist template with the listing and in_watchlist status

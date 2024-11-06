@@ -37,7 +37,7 @@
             <a class="nav-link" href="{% url 'categories' %}">Categories</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'watchlist' %}">Watchlist</a>
+            <a class="nav-link" href="{% url 'watchlist' %}">Watchlist <span class="bg-danger">{{ count_watch_list }}</span></a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="{% url 'create_listing' %}">Create Listing</a>
