@@ -10,25 +10,53 @@
     <p>Description: {{ listing.description }}</p>
     <p>Owner: {{ listing.created_by }}</p>
     <p><strong>Starting Bid: ${{ listing.starting_bid }}</strong></p>
-  
+
+    <!--  added by Eduardo  -->
+    <h3>Bids</h3>
+    <ul class="list-group mb-3">
+      {% for bid in bids %}
+        <li class="list-group
+        {% if bid.user == user %}list-group-item-success{% endif %}">
+          <strong>{{ bid.user.username }}:</strong> ${{ bid.amount }}
+        </li>
+      {% empty %}
+        <p>No bids yet.</p>
+      {% endfor %}
+    </ul>
+  <!--  end  -->
+
     {% if user.is_authenticated %}
-      <form action="{% url 'listing_page' listing.id %}" method="post" class="mb-3">
-        {% csrf_token %}
-        <div class="form-group">
-          <input type="number" name="amount" class="form-control" placeholder="Enter your bid" required />
-        </div>
-        <button type="submit" name="place_bid" class="btn btn-primary">Place Bid</button>
-      </form>
-      {% if in_watchlist %}
-        <form action="{% url 'remove_watchlist' listing.id %}" method="post" class="mb-3">
+
+      {% if listing.created_by != user %}
+        <form action="{% url 'listing_page' listing.id %}" method="post" class="mb-3">
           {% csrf_token %}
-          <button type="submit" class="btn btn-danger">Remove from Watchlist</button>
+          <div class="form-group">
+            <input type="number" name="amount" class="form-control" placeholder="Enter your bid" required />
+          </div>
+          {% if messages %}
+          <ul>
+              {% for message in messages %}
+                  <li class="{% if message.tags %}{{ message.tags }}{% endif %}">{{ message }}</li>
+              {% endfor %}
+          </ul>
+        {% endif %}
+          <button type="submit" name="place_bid" class="btn btn-primary">Place Bid</button>
+         
         </form>
-      {% else %}
-        <form action="{% url 'add_watchlist' listing.id %}" method="post" class="mb-3">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-success">Add to Watchlist</button>
-        </form>
+      {% endif %}
+
+      {% if listing.created_by != user %}
+        {% if in_watchlist %} 
+            <form action="{% url 'remove_watchlist' listing.id %}" method="post" class="mb-3">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger">Remove from Watchlist</button>
+            </form>
+          {% else %}
+            <form action="{% url 'add_watchlist' listing.id %}" method="post" class="mb-3">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success">Add to Watchlist</button>
+          </form>
+        {% endif %}
       {% endif %}
     {% endif %}
   
@@ -49,6 +77,21 @@
         </div>
         <button type="submit" name="add_comment" class="btn btn-secondary">Comment</button>
       </form>
+    {% endif %}
+
+    {% if user.is_authenticated and user == listing.created_by and listing.active %}
+      <form action="{% url 'close_listing' listing.id %}" method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Close Listing</button>
+      </form>
+    {% endif %}
+  
+    {% if not listing.active %}
+      <h3>Closed</h3>
+      <p>This listing is closed.</p>
+      {% if user.is_authenticated and user == listing.bids.last.user %}
+      <p>Winner: {{ listing.bids.last.user }}</p>
+      {% endif %}
     {% endif %}
   </div>
 {% endblock %}

@@ -133,9 +133,10 @@ def listing_page(request, listing_id):
 
     bid_form = BidForm()
     comment_form = CommentForm()
+    current_bids = listing.bids.all().order_by("-amount")
     return render(request, "auctions/listing.html", {
         "listing": listing,
-        "bids": bids,
+        "bids": current_bids,
         "comments": comments,
         "bid_form": bid_form,
         "comment_form": comment_form,
@@ -203,4 +204,20 @@ def remove_watchlist(request, listing_id):
     return render(request, "auctions/add_watchlist.html", {
         "listing": listing,
         "in_watchlist": in_watchlist
+    })
+
+def close_listing(request, listing_id):
+    listing = get_object_or_404(Listing, pk=listing_id)
+    if request.method == "POST":
+        listing.active = False
+        listing.save()
+        return redirect('index')
+
+
+def close_listings(request):
+    listings = Listing.objects.filter(active=False)
+    categories = Category.objects.all()
+    return render(request, "auctions/close_listings.html", {
+        "listings": listings,
+        "categories": categories        
     })
