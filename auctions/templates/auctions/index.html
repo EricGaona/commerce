@@ -3,20 +3,24 @@
 {% block body %}
 <div class="container">
     <h2>Active Listings</h2>      
-    
+    <h3>Hello!! -- >>  This is the index.html</h3>
     <div class="row">
 
       {% for listing in listings %}
-        <div class="col-md-4 mb-4 justify-content-center">
-          <div class="card" style="max-width: 18rem; max-height: 16;">
+        <div class="col-md-6 col-lg-4 mb-5">
+
+          <div class="card pt-2">
             <div class="d-flex justify-content-center">
               <img
-                src="{{ listing.image_url|default_if_none:'#' }}"
-                class="card-img img-fluid"
-                alt="Image for {{ listing.title }}"
-                style="max-width: 14rem; max-height: 12rem;"
+                 src="{{ listing.image_url|default_if_none:'#' }}"
+                 class="card-img fixing-size"
+                 alt="Image for {{ listing.title }}"
+                              
               />
+
             </div>
+              
+            
             
             <div class="card-body d-flex flex-column align-items-center">
               <h5 class="card-title">{{ listing.title }}</h5>
@@ -25,6 +29,7 @@
               <a href="{% url 'listing_page' listing.id %}" class="btn btn-primary">View Listing</a>
             </div>
           </div>
+
         </div>
       {% empty %}
         <p>No active listings available.</p>
