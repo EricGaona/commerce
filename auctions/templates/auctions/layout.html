@@ -36,9 +36,15 @@
           <li class="nav-item">
             <a class="nav-link" href="{% url 'categories' %}">Categories</a>
           </li>
+          {% if count_watch_list > 0 %}
           <li class="nav-item">
             <a class="nav-link" href="{% url 'watchlist' %}">Watchlist <span class="text-white bg-secondary px-1 rounded">{{ count_watch_list }}</span></a>
           </li>
+          {% else %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'watchlist' %}">Watchlist</a>
+          </li>
+          {% endif %}
           <li class="nav-item">
             <a class="nav-link" href="{% url 'create_listing' %}">Create Listing</a>
           </li>
@@ -57,7 +63,6 @@
           </li>
         {% endif %}
       </ul>
-  
       <hr />
     {% block body %} 
     {% endblock %}
