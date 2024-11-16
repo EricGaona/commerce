@@ -180,8 +180,7 @@ def add_watchlist(request, listing_id):
             Watchlist.objects.create(user=user, listing=listing)
         return redirect('listing_page', listing_id=listing.id)
 
-    # Render the add_watchlist template with the listing and in_watchlist status
-    return render(request, "auctions/add_watchlist.html", {
+    return render(request, "auctions/listing.html", {
         "listing": listing,
         "in_watchlist": in_watchlist
     })
@@ -200,8 +199,7 @@ def remove_watchlist(request, listing_id):
        
         return redirect('listing_page', listing_id=listing.id)
 
-    # Render the add_watchlist template with the listing and in_watchlist status
-    return render(request, "auctions/add_watchlist.html", {
+    return render(request, "auctions/listing.html", {
         "listing": listing,
         "in_watchlist": in_watchlist
     })
